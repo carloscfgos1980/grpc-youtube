@@ -1,0 +1,17 @@
+syntax = "proto3";
+
+package chat;
+
+option go_package = "proto/gen;genpb";
+
+service Chat {
+  rpc RegisterUser(UserInfo) returns (RegisterResponse);
+}
+
+message UserInfo {
+  string username = 1;
+}
+
+message RegisterResponse {
+  string message = 2;
+}
