@@ -19,7 +19,8 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	Chat_RegisterUser_FullMethodName = "/chat.Chat/RegisterUser"
+	Chat_RegisterUser_FullMethodName       = "/chat.Chat/RegisterUser"
+	Chat_SendOfflineMessage_FullMethodName = "/chat.Chat/SendOfflineMessage"
 )
 
 // ChatClient is the client API for Chat service.
@@ -27,6 +28,7 @@ const (
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type ChatClient interface {
 	RegisterUser(ctx context.Context, in *UserInfo, opts ...grpc.CallOption) (*RegisterResponse, error)
+	SendOfflineMessage(ctx context.Context, opts ...grpc.CallOption) (grpc.ClientStreamingClient[ChatMessage, UploadSummary], error)
 }
 
 type chatClient struct {
@@ -47,11 +49,25 @@ func (c *chatClient) RegisterUser(ctx context.Context, in *UserInfo, opts ...grp
 	return out, nil
 }
 
+func (c *chatClient) SendOfflineMessage(ctx context.Context, opts ...grpc.CallOption) (grpc.ClientStreamingClient[ChatMessage, UploadSummary], error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	stream, err := c.cc.NewStream(ctx, &Chat_ServiceDesc.Streams[0], Chat_SendOfflineMessage_FullMethodName, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &grpc.GenericClientStream[ChatMessage, UploadSummary]{ClientStream: stream}
+	return x, nil
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type Chat_SendOfflineMessageClient = grpc.ClientStreamingClient[ChatMessage, UploadSummary]
+
 // ChatServer is the server API for Chat service.
 // All implementations must embed UnimplementedChatServer
 // for forward compatibility.
 type ChatServer interface {
 	RegisterUser(context.Context, *UserInfo) (*RegisterResponse, error)
+	SendOfflineMessage(grpc.ClientStreamingServer[ChatMessage, UploadSummary]) error
 	mustEmbedUnimplementedChatServer()
 }
 
@@ -64,6 +80,9 @@ type UnimplementedChatServer struct{}
 
 func (UnimplementedChatServer) RegisterUser(context.Context, *UserInfo) (*RegisterResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method RegisterUser not implemented")
+}
+func (UnimplementedChatServer) SendOfflineMessage(grpc.ClientStreamingServer[ChatMessage, UploadSummary]) error {
+	return status.Error(codes.Unimplemented, "method SendOfflineMessage not implemented")
 }
 func (UnimplementedChatServer) mustEmbedUnimplementedChatServer() {}
 func (UnimplementedChatServer) testEmbeddedByValue()              {}
@@ -104,6 +123,13 @@ func _Chat_RegisterUser_Handler(srv interface{}, ctx context.Context, dec func(i
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Chat_SendOfflineMessage_Handler(srv interface{}, stream grpc.ServerStream) error {
+	return srv.(ChatServer).SendOfflineMessage(&grpc.GenericServerStream[ChatMessage, UploadSummary]{ServerStream: stream})
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type Chat_SendOfflineMessageServer = grpc.ClientStreamingServer[ChatMessage, UploadSummary]
+
 // Chat_ServiceDesc is the grpc.ServiceDesc for Chat service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -116,6 +142,12 @@ var Chat_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _Chat_RegisterUser_Handler,
 		},
 	},
-	Streams:  []grpc.StreamDesc{},
+	Streams: []grpc.StreamDesc{
+		{
+			StreamName:    "SendOfflineMessage",
+			Handler:       _Chat_SendOfflineMessage_Handler,
+			ClientStreams: true,
+		},
+	},
 	Metadata: "chat.proto",
 }

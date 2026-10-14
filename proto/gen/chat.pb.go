@@ -67,7 +67,7 @@ func (x *UserInfo) GetUsername() string {
 
 type RegisterResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Message       string                 `protobuf:"bytes,2,opt,name=message,proto3" json:"message,omitempty"`
+	Message       string                 `protobuf:"bytes,1,opt,name=message,proto3" json:"message,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -109,6 +109,110 @@ func (x *RegisterResponse) GetMessage() string {
 	return ""
 }
 
+type ChatMessage struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Username      string                 `protobuf:"bytes,1,opt,name=username,proto3" json:"username,omitempty"`
+	Content       string                 `protobuf:"bytes,2,opt,name=content,proto3" json:"content,omitempty"`
+	Timestamp     int64                  `protobuf:"varint,3,opt,name=timestamp,proto3" json:"timestamp,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ChatMessage) Reset() {
+	*x = ChatMessage{}
+	mi := &file_chat_proto_msgTypes[2]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ChatMessage) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ChatMessage) ProtoMessage() {}
+
+func (x *ChatMessage) ProtoReflect() protoreflect.Message {
+	mi := &file_chat_proto_msgTypes[2]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ChatMessage.ProtoReflect.Descriptor instead.
+func (*ChatMessage) Descriptor() ([]byte, []int) {
+	return file_chat_proto_rawDescGZIP(), []int{2}
+}
+
+func (x *ChatMessage) GetUsername() string {
+	if x != nil {
+		return x.Username
+	}
+	return ""
+}
+
+func (x *ChatMessage) GetContent() string {
+	if x != nil {
+		return x.Content
+	}
+	return ""
+}
+
+func (x *ChatMessage) GetTimestamp() int64 {
+	if x != nil {
+		return x.Timestamp
+	}
+	return 0
+}
+
+type UploadSummary struct {
+	state                 protoimpl.MessageState `protogen:"open.v1"`
+	SuccessStoredMessages int64                  `protobuf:"varint,1,opt,name=success_stored_messages,json=successStoredMessages,proto3" json:"success_stored_messages,omitempty"`
+	unknownFields         protoimpl.UnknownFields
+	sizeCache             protoimpl.SizeCache
+}
+
+func (x *UploadSummary) Reset() {
+	*x = UploadSummary{}
+	mi := &file_chat_proto_msgTypes[3]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UploadSummary) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UploadSummary) ProtoMessage() {}
+
+func (x *UploadSummary) ProtoReflect() protoreflect.Message {
+	mi := &file_chat_proto_msgTypes[3]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UploadSummary.ProtoReflect.Descriptor instead.
+func (*UploadSummary) Descriptor() ([]byte, []int) {
+	return file_chat_proto_rawDescGZIP(), []int{3}
+}
+
+func (x *UploadSummary) GetSuccessStoredMessages() int64 {
+	if x != nil {
+		return x.SuccessStoredMessages
+	}
+	return 0
+}
+
 var File_chat_proto protoreflect.FileDescriptor
 
 const file_chat_proto_rawDesc = "" +
@@ -118,9 +222,16 @@ const file_chat_proto_rawDesc = "" +
 	"\bUserInfo\x12\x1a\n" +
 	"\busername\x18\x01 \x01(\tR\busername\",\n" +
 	"\x10RegisterResponse\x12\x18\n" +
-	"\amessage\x18\x02 \x01(\tR\amessage2>\n" +
+	"\amessage\x18\x01 \x01(\tR\amessage\"a\n" +
+	"\vChatMessage\x12\x1a\n" +
+	"\busername\x18\x01 \x01(\tR\busername\x12\x18\n" +
+	"\acontent\x18\x02 \x01(\tR\acontent\x12\x1c\n" +
+	"\ttimestamp\x18\x03 \x01(\x03R\ttimestamp\"G\n" +
+	"\rUploadSummary\x126\n" +
+	"\x17success_stored_messages\x18\x01 \x01(\x03R\x15successStoredMessages2~\n" +
 	"\x04Chat\x126\n" +
-	"\fRegisterUser\x12\x0e.chat.UserInfo\x1a\x16.chat.RegisterResponseB\x11Z\x0fproto/gen;genpbb\x06proto3"
+	"\fRegisterUser\x12\x0e.chat.UserInfo\x1a\x16.chat.RegisterResponse\x12>\n" +
+	"\x12SendOfflineMessage\x12\x11.chat.ChatMessage\x1a\x13.chat.UploadSummary(\x01B\x11Z\x0fproto/gen;genpbb\x06proto3"
 
 var (
 	file_chat_proto_rawDescOnce sync.Once
@@ -134,16 +245,20 @@ func file_chat_proto_rawDescGZIP() []byte {
 	return file_chat_proto_rawDescData
 }
 
-var file_chat_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
+var file_chat_proto_msgTypes = make([]protoimpl.MessageInfo, 4)
 var file_chat_proto_goTypes = []any{
 	(*UserInfo)(nil),         // 0: chat.UserInfo
 	(*RegisterResponse)(nil), // 1: chat.RegisterResponse
+	(*ChatMessage)(nil),      // 2: chat.ChatMessage
+	(*UploadSummary)(nil),    // 3: chat.UploadSummary
 }
 var file_chat_proto_depIdxs = []int32{
 	0, // 0: chat.Chat.RegisterUser:input_type -> chat.UserInfo
-	1, // 1: chat.Chat.RegisterUser:output_type -> chat.RegisterResponse
-	1, // [1:2] is the sub-list for method output_type
-	0, // [0:1] is the sub-list for method input_type
+	2, // 1: chat.Chat.SendOfflineMessage:input_type -> chat.ChatMessage
+	1, // 2: chat.Chat.RegisterUser:output_type -> chat.RegisterResponse
+	3, // 3: chat.Chat.SendOfflineMessage:output_type -> chat.UploadSummary
+	2, // [2:4] is the sub-list for method output_type
+	0, // [0:2] is the sub-list for method input_type
 	0, // [0:0] is the sub-list for extension type_name
 	0, // [0:0] is the sub-list for extension extendee
 	0, // [0:0] is the sub-list for field type_name
@@ -160,7 +275,7 @@ func file_chat_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_chat_proto_rawDesc), len(file_chat_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   2,
+			NumMessages:   4,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
