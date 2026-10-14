@@ -44,6 +44,7 @@ func (s *server) SendOfflineMessage(stream pb.Chat_SendOfflineMessageServer) err
 			}
 			return err
 		}
+		log.Printf("Received offline message from user: %s with content: %s at timestamp: %d", msg.GetUsername(), msg.GetContent(), msg.GetTimestamp())
 		offlineMessages = append(offlineMessages, Message{
 			Username:  msg.GetUsername(),
 			Content:   msg.GetContent(),
