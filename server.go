@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"io"
 	"log"
 	"net"
 
@@ -16,9 +17,40 @@ type server struct {
 	pb.UnimplementedChatServer
 }
 
+// Urinary tract infection (UTI) registration handler
 func (s *server) RegisterUser(ctx context.Context, req *pb.UserInfo) (*pb.RegisterResponse, error) {
 	registeredUsers = append(registeredUsers, req.GetUsername())
 	return &pb.RegisterResponse{Message: req.GetUsername() + " registered successfully"}, nil
+}
+
+type Message struct {
+	Username  string
+	Content   string
+	Timestamp int64
+}
+
+var offlineMessages []Message
+
+// Client streaming
+func (s *server) SendOfflineMessage(stream pb.Chat_SendOfflineMessageServer) error {
+	for {
+		msg, err := stream.Recv()
+		if err == io.EOF {
+			return stream.SendAndClose(&pb.UploadSummary{SuccessStoredMessages: int64(len(offlineMessages))})
+		}
+		if err != nil {
+			if err == context.Canceled || err == context.DeadlineExceeded {
+				return nil
+			}
+			return err
+		}
+		offlineMessages = append(offlineMessages, Message{
+			Username:  msg.GetUsername(),
+			Content:   msg.GetContent(),
+			Timestamp: msg.GetTimestamp(),
+		})
+	}
+
 }
 
 func main() {
