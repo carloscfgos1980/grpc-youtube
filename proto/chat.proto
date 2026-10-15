@@ -7,6 +7,7 @@ option go_package = "proto/gen;genpb";
 service Chat {
   rpc RegisterUser(UserInfo) returns (RegisterResponse);
   rpc SendOfflineMessage(stream ChatMessage) returns (UploadSummary);
+  rpc  GetChatHistory(ChatHistoryRequest) returns (stream ChatMessage);
 }
 
 message UserInfo {
@@ -25,4 +26,8 @@ message ChatMessage {
 
 message UploadSummary {
   int64 success_stored_messages = 1;
+}
+
+message ChatHistoryRequest {
+  int64 timestamp = 1;
 }

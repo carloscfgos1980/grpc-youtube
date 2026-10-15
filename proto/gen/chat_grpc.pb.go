@@ -21,6 +21,7 @@ const _ = grpc.SupportPackageIsVersion9
 const (
 	Chat_RegisterUser_FullMethodName       = "/chat.Chat/RegisterUser"
 	Chat_SendOfflineMessage_FullMethodName = "/chat.Chat/SendOfflineMessage"
+	Chat_GetChatHistory_FullMethodName     = "/chat.Chat/GetChatHistory"
 )
 
 // ChatClient is the client API for Chat service.
@@ -29,6 +30,7 @@ const (
 type ChatClient interface {
 	RegisterUser(ctx context.Context, in *UserInfo, opts ...grpc.CallOption) (*RegisterResponse, error)
 	SendOfflineMessage(ctx context.Context, opts ...grpc.CallOption) (grpc.ClientStreamingClient[ChatMessage, UploadSummary], error)
+	GetChatHistory(ctx context.Context, in *ChatHistoryRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[ChatMessage], error)
 }
 
 type chatClient struct {
@@ -62,12 +64,32 @@ func (c *chatClient) SendOfflineMessage(ctx context.Context, opts ...grpc.CallOp
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
 type Chat_SendOfflineMessageClient = grpc.ClientStreamingClient[ChatMessage, UploadSummary]
 
+func (c *chatClient) GetChatHistory(ctx context.Context, in *ChatHistoryRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[ChatMessage], error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	stream, err := c.cc.NewStream(ctx, &Chat_ServiceDesc.Streams[1], Chat_GetChatHistory_FullMethodName, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &grpc.GenericClientStream[ChatHistoryRequest, ChatMessage]{ClientStream: stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type Chat_GetChatHistoryClient = grpc.ServerStreamingClient[ChatMessage]
+
 // ChatServer is the server API for Chat service.
 // All implementations must embed UnimplementedChatServer
 // for forward compatibility.
 type ChatServer interface {
 	RegisterUser(context.Context, *UserInfo) (*RegisterResponse, error)
 	SendOfflineMessage(grpc.ClientStreamingServer[ChatMessage, UploadSummary]) error
+	GetChatHistory(*ChatHistoryRequest, grpc.ServerStreamingServer[ChatMessage]) error
 	mustEmbedUnimplementedChatServer()
 }
 
@@ -83,6 +105,9 @@ func (UnimplementedChatServer) RegisterUser(context.Context, *UserInfo) (*Regist
 }
 func (UnimplementedChatServer) SendOfflineMessage(grpc.ClientStreamingServer[ChatMessage, UploadSummary]) error {
 	return status.Error(codes.Unimplemented, "method SendOfflineMessage not implemented")
+}
+func (UnimplementedChatServer) GetChatHistory(*ChatHistoryRequest, grpc.ServerStreamingServer[ChatMessage]) error {
+	return status.Error(codes.Unimplemented, "method GetChatHistory not implemented")
 }
 func (UnimplementedChatServer) mustEmbedUnimplementedChatServer() {}
 func (UnimplementedChatServer) testEmbeddedByValue()              {}
@@ -130,6 +155,17 @@ func _Chat_SendOfflineMessage_Handler(srv interface{}, stream grpc.ServerStream)
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
 type Chat_SendOfflineMessageServer = grpc.ClientStreamingServer[ChatMessage, UploadSummary]
 
+func _Chat_GetChatHistory_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(ChatHistoryRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(ChatServer).GetChatHistory(m, &grpc.GenericServerStream[ChatHistoryRequest, ChatMessage]{ServerStream: stream})
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type Chat_GetChatHistoryServer = grpc.ServerStreamingServer[ChatMessage]
+
 // Chat_ServiceDesc is the grpc.ServiceDesc for Chat service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -147,6 +183,11 @@ var Chat_ServiceDesc = grpc.ServiceDesc{
 			StreamName:    "SendOfflineMessage",
 			Handler:       _Chat_SendOfflineMessage_Handler,
 			ClientStreams: true,
+		},
+		{
+			StreamName:    "GetChatHistory",
+			Handler:       _Chat_GetChatHistory_Handler,
+			ServerStreams: true,
 		},
 	},
 	Metadata: "chat.proto",

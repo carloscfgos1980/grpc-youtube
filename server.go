@@ -54,6 +54,24 @@ func (s *server) SendOfflineMessage(stream pb.Chat_SendOfflineMessageServer) err
 
 }
 
+// server streaming
+func (s *server) GetChatHistory(req *pb.ChatHistoryRequest, stream pb.Chat_GetChatHistoryServer) error {
+	for idx, msg := range offlineMessages {
+		if msg.Timestamp >= req.GetTimestamp() {
+			if idx >= int(req.GetTimestamp())-1 {
+				if err := stream.Send(&pb.ChatMessage{
+					Username:  msg.Username,
+					Content:   msg.Content,
+					Timestamp: msg.Timestamp,
+				}); err != nil {
+					return err
+				}
+			}
+		}
+	}
+	return nil
+}
+
 func main() {
 	lis, err := net.Listen("tcp", ":5001")
 	if err != nil {
