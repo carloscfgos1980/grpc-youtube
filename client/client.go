@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"io"
 	"log"
 	"time"
 
@@ -67,4 +68,20 @@ func main() {
 		log.Fatalf("failed to receive upload summary: %v", err)
 	}
 	log.Printf("Successfully stored %d offline messages", res.GetSuccessStoredMessages())
+
+	// stream response to get chat history
+	historyStream, err := client.GetChatHistory(context.Background(), &pb.ChatHistoryRequest{Timestamp: 1234567890})
+	if err != nil {
+		log.Fatalf("failed to get chat history: %v", err)
+	}
+	for {
+		msg, err := historyStream.Recv()
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			log.Fatalf("failed to receive chat message: %v", err)
+		}
+		log.Printf("Received chat message from user: %s with content: %s at timestamp: %d", msg.GetUsername(), msg.GetContent(), msg.GetTimestamp())
+	}
 }
