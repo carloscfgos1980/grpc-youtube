@@ -84,4 +84,39 @@ func main() {
 		}
 		log.Printf("Received chat message from user: %s with content: %s at timestamp: %d", msg.GetUsername(), msg.GetContent(), msg.GetTimestamp())
 	}
+	// bidirectional streaming chat
+	chatStream, err := client.Chat(context.Background())
+	if err != nil {
+		log.Fatalf("failed to create chat stream: %v", err)
+	}
+	// receive chat messages in a separate goroutine
+	go func() {
+		for {
+			res, err := chatStream.Recv()
+			if err == io.EOF {
+				break
+			}
+			if err != nil {
+				log.Fatalf("failed to receive chat message: %v", err)
+			}
+			log.Printf("Received chat message from user: %s with content: %s at timestamp: %d", res.GetUsername(), res.GetContent(), res.GetTimestamp())
+		}
+
+	}()
+	// send offline messages over the chat stream
+	for _, msg := range offlineMessages {
+		err := chatStream.Send(&pb.ChatMessage{
+			Username:  msg.Username,
+			Content:   msg.Content,
+			Timestamp: msg.Timestamp,
+		})
+		if err != nil {
+			log.Fatalf("failed to send chat message: %v", err)
+		}
+		time.Sleep(1 * time.Second)
+	}
+	// Close the chat stream after sending all messages
+	if err := chatStream.CloseSend(); err != nil {
+		log.Fatalf("failed to close chat stream: %v", err)
+	}
 }
