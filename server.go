@@ -70,6 +70,35 @@ func (s *server) GetChatHistory(req *pb.ChatHistoryRequest, stream pb.Chat_GetCh
 	return nil
 }
 
+// bidirectional streaming
+func (s *server) Chat(stream pb.Chat_ChatServer) error {
+	for {
+		msg, err := stream.Recv()
+		if err == io.EOF {
+			return nil
+		}
+		if err != nil {
+			if err == context.Canceled || err == context.DeadlineExceeded {
+				return nil
+			}
+			return err
+		}
+		log.Printf("Received chat message from user: %s with content: %s at timestamp: %d", msg.GetUsername(), msg.GetContent(), msg.GetTimestamp())
+		offlineMessages = append(offlineMessages, Message{
+			Username:  msg.GetUsername(),
+			Content:   msg.GetContent(),
+			Timestamp: msg.GetTimestamp(),
+		})
+		if err := stream.Send(&pb.ChatMessage{
+			Username:  msg.GetUsername(),
+			Content:   msg.GetContent(),
+			Timestamp: msg.GetTimestamp(),
+		}); err != nil {
+			return err
+		}
+	}
+}
+
 func main() {
 	lis, err := net.Listen("tcp", ":5001")
 	if err != nil {

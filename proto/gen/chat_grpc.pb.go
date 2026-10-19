@@ -22,6 +22,7 @@ const (
 	Chat_RegisterUser_FullMethodName       = "/chat.Chat/RegisterUser"
 	Chat_SendOfflineMessage_FullMethodName = "/chat.Chat/SendOfflineMessage"
 	Chat_GetChatHistory_FullMethodName     = "/chat.Chat/GetChatHistory"
+	Chat_Chat_FullMethodName               = "/chat.Chat/Chat"
 )
 
 // ChatClient is the client API for Chat service.
@@ -31,6 +32,7 @@ type ChatClient interface {
 	RegisterUser(ctx context.Context, in *UserInfo, opts ...grpc.CallOption) (*RegisterResponse, error)
 	SendOfflineMessage(ctx context.Context, opts ...grpc.CallOption) (grpc.ClientStreamingClient[ChatMessage, UploadSummary], error)
 	GetChatHistory(ctx context.Context, in *ChatHistoryRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[ChatMessage], error)
+	Chat(ctx context.Context, opts ...grpc.CallOption) (grpc.BidiStreamingClient[ChatMessage, ChatMessage], error)
 }
 
 type chatClient struct {
@@ -83,6 +85,19 @@ func (c *chatClient) GetChatHistory(ctx context.Context, in *ChatHistoryRequest,
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
 type Chat_GetChatHistoryClient = grpc.ServerStreamingClient[ChatMessage]
 
+func (c *chatClient) Chat(ctx context.Context, opts ...grpc.CallOption) (grpc.BidiStreamingClient[ChatMessage, ChatMessage], error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	stream, err := c.cc.NewStream(ctx, &Chat_ServiceDesc.Streams[2], Chat_Chat_FullMethodName, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &grpc.GenericClientStream[ChatMessage, ChatMessage]{ClientStream: stream}
+	return x, nil
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type Chat_ChatClient = grpc.BidiStreamingClient[ChatMessage, ChatMessage]
+
 // ChatServer is the server API for Chat service.
 // All implementations must embed UnimplementedChatServer
 // for forward compatibility.
@@ -90,6 +105,7 @@ type ChatServer interface {
 	RegisterUser(context.Context, *UserInfo) (*RegisterResponse, error)
 	SendOfflineMessage(grpc.ClientStreamingServer[ChatMessage, UploadSummary]) error
 	GetChatHistory(*ChatHistoryRequest, grpc.ServerStreamingServer[ChatMessage]) error
+	Chat(grpc.BidiStreamingServer[ChatMessage, ChatMessage]) error
 	mustEmbedUnimplementedChatServer()
 }
 
@@ -108,6 +124,9 @@ func (UnimplementedChatServer) SendOfflineMessage(grpc.ClientStreamingServer[Cha
 }
 func (UnimplementedChatServer) GetChatHistory(*ChatHistoryRequest, grpc.ServerStreamingServer[ChatMessage]) error {
 	return status.Error(codes.Unimplemented, "method GetChatHistory not implemented")
+}
+func (UnimplementedChatServer) Chat(grpc.BidiStreamingServer[ChatMessage, ChatMessage]) error {
+	return status.Error(codes.Unimplemented, "method Chat not implemented")
 }
 func (UnimplementedChatServer) mustEmbedUnimplementedChatServer() {}
 func (UnimplementedChatServer) testEmbeddedByValue()              {}
@@ -166,6 +185,13 @@ func _Chat_GetChatHistory_Handler(srv interface{}, stream grpc.ServerStream) err
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
 type Chat_GetChatHistoryServer = grpc.ServerStreamingServer[ChatMessage]
 
+func _Chat_Chat_Handler(srv interface{}, stream grpc.ServerStream) error {
+	return srv.(ChatServer).Chat(&grpc.GenericServerStream[ChatMessage, ChatMessage]{ServerStream: stream})
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type Chat_ChatServer = grpc.BidiStreamingServer[ChatMessage, ChatMessage]
+
 // Chat_ServiceDesc is the grpc.ServiceDesc for Chat service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -188,6 +214,12 @@ var Chat_ServiceDesc = grpc.ServiceDesc{
 			StreamName:    "GetChatHistory",
 			Handler:       _Chat_GetChatHistory_Handler,
 			ServerStreams: true,
+		},
+		{
+			StreamName:    "Chat",
+			Handler:       _Chat_Chat_Handler,
+			ServerStreams: true,
+			ClientStreams: true,
 		},
 	},
 	Metadata: "chat.proto",

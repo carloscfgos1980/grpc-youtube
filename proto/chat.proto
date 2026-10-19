@@ -8,6 +8,7 @@ service Chat {
   rpc RegisterUser(UserInfo) returns (RegisterResponse);
   rpc SendOfflineMessage(stream ChatMessage) returns (UploadSummary);
   rpc  GetChatHistory(ChatHistoryRequest) returns (stream ChatMessage);
+  rpc Chat(stream ChatMessage) returns (stream ChatMessage);
 }
 
 message UserInfo {

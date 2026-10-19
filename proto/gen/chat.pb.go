@@ -274,11 +274,12 @@ const file_chat_proto_rawDesc = "" +
 	"\rUploadSummary\x126\n" +
 	"\x17success_stored_messages\x18\x01 \x01(\x03R\x15successStoredMessages\"2\n" +
 	"\x12ChatHistoryRequest\x12\x1c\n" +
-	"\ttimestamp\x18\x01 \x01(\x03R\ttimestamp2\xbf\x01\n" +
+	"\ttimestamp\x18\x01 \x01(\x03R\ttimestamp2\xf1\x01\n" +
 	"\x04Chat\x126\n" +
 	"\fRegisterUser\x12\x0e.chat.UserInfo\x1a\x16.chat.RegisterResponse\x12>\n" +
 	"\x12SendOfflineMessage\x12\x11.chat.ChatMessage\x1a\x13.chat.UploadSummary(\x01\x12?\n" +
-	"\x0eGetChatHistory\x12\x18.chat.ChatHistoryRequest\x1a\x11.chat.ChatMessage0\x01B\x11Z\x0fproto/gen;genpbb\x06proto3"
+	"\x0eGetChatHistory\x12\x18.chat.ChatHistoryRequest\x1a\x11.chat.ChatMessage0\x01\x120\n" +
+	"\x04Chat\x12\x11.chat.ChatMessage\x1a\x11.chat.ChatMessage(\x010\x01B\x11Z\x0fproto/gen;genpbb\x06proto3"
 
 var (
 	file_chat_proto_rawDescOnce sync.Once
@@ -304,11 +305,13 @@ var file_chat_proto_depIdxs = []int32{
 	0, // 0: chat.Chat.RegisterUser:input_type -> chat.UserInfo
 	2, // 1: chat.Chat.SendOfflineMessage:input_type -> chat.ChatMessage
 	4, // 2: chat.Chat.GetChatHistory:input_type -> chat.ChatHistoryRequest
-	1, // 3: chat.Chat.RegisterUser:output_type -> chat.RegisterResponse
-	3, // 4: chat.Chat.SendOfflineMessage:output_type -> chat.UploadSummary
-	2, // 5: chat.Chat.GetChatHistory:output_type -> chat.ChatMessage
-	3, // [3:6] is the sub-list for method output_type
-	0, // [0:3] is the sub-list for method input_type
+	2, // 3: chat.Chat.Chat:input_type -> chat.ChatMessage
+	1, // 4: chat.Chat.RegisterUser:output_type -> chat.RegisterResponse
+	3, // 5: chat.Chat.SendOfflineMessage:output_type -> chat.UploadSummary
+	2, // 6: chat.Chat.GetChatHistory:output_type -> chat.ChatMessage
+	2, // 7: chat.Chat.Chat:output_type -> chat.ChatMessage
+	4, // [4:8] is the sub-list for method output_type
+	0, // [0:4] is the sub-list for method input_type
 	0, // [0:0] is the sub-list for extension type_name
 	0, // [0:0] is the sub-list for extension extendee
 	0, // [0:0] is the sub-list for field type_name
